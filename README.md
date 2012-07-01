@@ -134,7 +134,7 @@ Express 支持下列快捷（out of the box）设置:
 * `charet` 改变编码，默认为 utf-8
 * `case sensitive routes` 路由中区分大小写
 * `strit routing` 启用后（路由中的）结尾 `/` 将不会被忽略（译注：即 `app.get('/sofish')` 和 `app.get('/sofish/')` 将是不一样的）
-* `json callback` 启用 `res.send()` / `res.json()` 显式的的 jsonp 支持（transparent jsonp support）
+* `json callback` 启用 `res.send()` / `res.json()` 显式的 jsonp 支持（transparent jsonp support）
 
 ### Routing
 
