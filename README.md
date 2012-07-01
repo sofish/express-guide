@@ -1,9 +1,8 @@
 # Express 指南
 
-这是对 [express.js guide](http://expressjs.com/guide.html) 的一个翻译，贡献者名单：
+这是对 [express.js guide](http://expressjs.com/guide.html) 的一个翻译。翻译人：[Sofish Lin](http://twitter.com/sofish)。
 
-- Sofish Lin: [github](https://github.com/sofish), [twitter](http://twitter.com/sofish)
-
+----------------------------------------------------------
 
 ### 安装
 
