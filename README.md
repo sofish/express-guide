@@ -120,20 +120,21 @@ app.configure('stage', 'prod', function(){
 $ NODE_ENV=production node app.js
 ```
 
-这非常重要，因为大多数缓存机制只在产品阶段是被打开的。
+这非常重要，因为多数缓存机制只在产品阶段是被打开的。
 
-### Settings
 
-Express supports the following settings out of the box:
+### 设置
 
-* _home_ Application base path used for _res.redirect()_ and transparently handling mounted apps.
-* _views_ Root views directory defaulting to **CWD/views**
-* _view engine_ Default view engine name for views rendered without extensions
-* _view cache_ Enable view caching (enabled in production)
-* _charset_ Alter the default charset of "utf-8"
-* _case sensitive routes_ Enable case-sensitive routing
-* _strict routing_ When enabled trailing slashes are no longer ignored
-* _jsonp callback_ Enable _res.send()_ / _res.json()_ transparent jsonp support
+Express 支持下列快捷（out of the box）设置:
+
+* `basepath` 用于 `res.redirect()` 的应用程序基本路径（base path），显式地处理绑定的应用程序（transparently handling mounted apps.）
+* `view` View 默认的根目录为 **CWD/views**
+* `view engine` 默认 View 引擎处理（View 文件）并不需要使用后缀
+* `view cache` 启用 View 缓存 (在产品阶段被启用)
+* `charet` 改变编码，默认为 utf-8
+* `case sensitive routes` 路由中区分大小写
+* `strit routing` 启用后（路由中的）结尾 `/` 将不会被忽略（译注：即 `app.get('/sofish')` 和 `app.get('/sofish/')` 将是不一样的）
+* `json callback` 启用 `res.send()` / `res.json()` 显式的的 jsonp 支持（transparent jsonp support）
 
 ### Routing
 
@@ -143,8 +144,8 @@ can be done by defining the route below. The values associated to the named plac
 are available as `req.params`.
 
 app.get('/user/:id', function(req, res){
-		res.send('user ' + req.params.id);
-	});
+    res.send('user ' + req.params.id);
+});
 
 A route is simple a string which is compiled to a _RegExp_ internally. For example
 when _/user/:id_ is compiled, a simplified version of the regexp may look similar to:
