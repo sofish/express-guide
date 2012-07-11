@@ -136,77 +136,81 @@ Express 支持下列快捷（out of the box）设置:
 * `strit routing` 启用后（路由中的）结尾 `/` 将不会被忽略（译注：即 `app.get('/sofish')` 和 `app.get('/sofish/')` 将是不一样的）
 * `json callback` 启用 `res.send()` / `res.json()` 显式的 jsonp 支持（transparent jsonp support）
 
-### Routing
+### 路由
 
-Express utilizes the HTTP verbs to provide a meaningful, expressive routing API.
-For example we may want to render a user's account for the path _/user/12_, this
-can be done by defining the route below. The values associated to the named placeholders 
-are available as `req.params`.
+Express 利用 HTTP 动作提供一套提示性强、有表现力的路由 API。打个比方，如果想要处理某个路径为 _/user/12_ 的账号，我们能像下面这样来定义路由。关联到命名占位符（named placeholders）的值可用 `req.params` 来访问。
 
+```js
 app.get('/user/:id', function(req, res){
     res.send('user ' + req.params.id);
 });
+```
 
-A route is simple a string which is compiled to a _RegExp_ internally. For example
-when _/user/:id_ is compiled, a simplified version of the regexp may look similar to:
+路由是一个在内部被编译为正则的字符串。譬如，当 _/user/:id_ 被编译，一个简化版本的正则表达弄大概如下：
 
+```js
 \/user\/([^\/]+)\/?
+```
 
-Regular expression literals may also be passed for complex uses. Since capture
-groups with literal _RegExp_'s are anonymous we can access them directly `req.params`. So our first capture group would be _req.params[0]_ and the second would follow as _req.params[1]_.
+正则表达式可以传入应用于复杂的场景。由于通过字面量正则表达式捕获的内容组是匿名的，我们可能直接通过 `req.params` 来访问它们。因此，我们捕获的第一组内容将是 `req.params[0]`，同时第二组是紧接着的 `req.params[1]`。 
 
+```js
 app.get(/^\/users?(?:\/(\d+)(?:\.\.(\d+))?)?/, function(req, res){
     res.send(req.params);
 });
+```
 
-Curl requests against the previously defined route:
+Curl 针对上述定义路由的请求：
 
-   $ curl http://dev:3000/user
-   [null,null]
-   $ curl http://dev:3000/users
-   [null,null]
-   $ curl http://dev:3000/users/1
-   ["1",null]
-   $ curl http://dev:3000/users/1..15
-   ["1","15"]
+```bash
+$ curl http://dev:3000/user
+[null,null]
+$ curl http://dev:3000/users
+[null,null]
+$ curl http://dev:3000/users/1
+["1",null]
+$ curl http://dev:3000/users/1..15
+["1","15"]
+```
+下面是一些路由的实例，关联到他们可能使用到的路径：
 
-Below are some route examples, and the associated paths that they
-may consume:
+```bash
+"/user/:id"
+/user/12
 
- "/user/:id"
- /user/12
+"/users/:id?"
+/users/5
+/users
 
- "/users/:id?"
- /users/5
- /users
+"/files/*"
+/files/jquery.js
+/files/javascripts/jquery.js
 
- "/files/*"
- /files/jquery.js
- /files/javascripts/jquery.js
+"/file/*.*"
+/files/jquery.js
+/files/javascripts/jquery.js
 
- "/file/*.*"
- /files/jquery.js
- /files/javascripts/jquery.js
+"/user/:id/:operation?"
+/user/1
+/user/1/edit
 
- "/user/:id/:operation?"
- /user/1
- /user/1/edit
+"/products.:format"
+/products.json
+/products.xml
 
- "/products.:format"
- /products.json
- /products.xml
+"/products.:format?"
+/products.json
+/products.xml
+/products
 
- "/products.:format?"
- /products.json
- /products.xml
- /products
- 
- "/user/:id.:format?"
- /user/12
- /user/12.json
+"/user/:id.:format?"
+/user/12
+/user/12.json
+```
 
-For example we can __POST__ some json, and echo the json back using the _bodyParser_ middleware which will parse json request bodies (as well as others), and place the result in _req.body_:
+举个例子，我们可以使用 `POST` 发送 json 数据，通过 `bodyParser` 这个可以解析 json 请求内容（或者其他内容）的中间件来返回数据，将将返回结果存于 `req.body` 中：
 
+```js
 var express = require('express')
   , app = express.createServer();
 
@@ -217,15 +221,15 @@ app.post('/', function(req, res){
 });
 
 app.listen(3000);
+```
 
-Typically we may use a "dumb" placeholder such as "/user/:id" which has no restrictions, however say for example we are limiting a user id to digits, we may use _'/user/:id([0-9]+)'_ which will _not_ match unless the placeholder value contains only digits.
+通常我们可以使用一个像 `user/:id` 这样，没有（命名）限制的“傻瓜”式的占位符。然而比方说，我们要限制用户 id 只能是数字，那么我们可能使用 `/user/:id([0-9]+)`，这个将仅当占位符是包含至少一位数字时才生效（适配，match）。
 
-### Passing Route Control
+### 传递进路控制（Passing Route Control）
 
-We may pass control to the next _matching_ route, by calling the _third_ argument,
-the _next()_ function. When a match cannot be made, control is passed back to Connect,
-and middleware continue to be invoked in the order that they are added via _use()_. The same is true for several routes which have the same path defined, they will simply be executed in order until one does _not_ call _next()_ and decides to respond.
+我们可以通过调用第三个参数，`next()`函数，来控制下一个适配的路由。如果找不到适配，控制权将会传回给 Connect，同时中间件将会按在 `use()` 中添加的顺序被依次调用。道理同样适应于多个定义到同一路径的路由，他们将会依次被调用直到其中某个不调用 `next()` 将决定做出请求响应。
 
+```js
 app.get('/users/:id?', function(req, res, next){
 	var id = req.params.id;
 	if (id) {
@@ -235,12 +239,15 @@ app.get('/users/:id?', function(req, res, next){
 	}
 });
 
+
 app.get('/users', function(req, res){
 	// do something else
 });
+```
 
-The _app.all()_ method is useful for applying the same logic for all HTTP verbs in a single call. Below we use this to load a user from our fake database, and assign it to _req.user_.
+`app.all()` 方法只调用一次就可以方便地把同样的逻辑到所有 HTTP 动作。下面我们使用它来从伪数据中提取一个用户，将其赋给 `req.user`。
 
+```js
 var express = require('express')
   , app = express.createServer();
 
@@ -272,6 +279,7 @@ app.get('*', function(req, res){
 });
 
 app.listen(3000); 
+```
 
 ### Middleware
 
