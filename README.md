@@ -429,11 +429,11 @@ app.get('/', all, function(){});
 我们可能会有多次想要“跳过”剩余的路由中间件，继续匹配后续的路由。做到这点，我们只需调用 `next()` 时带上 `'route'` 字符串 —— `next('route')`。如果没有余下的路由匹配到请求的 URL，Express 将会返回 `404 Not Found`。
 
 
-### HTTP Methods
+### HTTP 方法
 
-We have seen _app.get()_ a few times, however Express also exposes other familiar HTTP verbs in the same manner, such as _app.post()_, _app.del()_, etc.
+至此已接触了好几次 `app.get()`，除此这外 Express 还提供了其他常见的 HTTP 动作，如 `app.post()` 、`app.del()` 等等。
 
-A common example for _POST_ usage, is when "submitting" a form. Below we simply set our form method to "post" in our html, and control will be given to the route we have defined below it.
+POST 用法的一个常用例子是提交一个表单。下面我们简单地在 html 中把表单的 method 属性设置为 post，控制权将会指派给它下面所定义的路由。
 
 ```html
 <form method="post" action="/">
@@ -443,24 +443,31 @@ A common example for _POST_ usage, is when "submitting" a form. Below we simply 
 </form>
 ```
 
-By default Express does not know what to do with this request body, so we should add the _bodyParser_ middleware, which will parse _application/x-www-form-urlencoded_ and _application/json_ request bodies and place the variables in _req.body_. We can do this by "using" the middleware as shown below:
+默认上 Express 并不知道如何处理这个请求的内容，因此我们必须添加 `bodyParser` 中间件，它将解析 `application/x-www-form-urlencoded` 和 `application/json` 请求的内容，并把变量存放于 `req.body` 中。我们可以像下述示例一样来使用这个中间件：
 
+```js
 app.use(express.bodyParser());
+```
 
-Our route below will now have access to the _req.body.user_ object which will contain the _name_ and _email_ properties when defined.
+如下，我们的路由将有权访问 `req.body.user` 对象，当有 name 和 email 被定义时它将包含这两个属性（译注：如果表单发送的内容不为空的话）。
 
+```js
 app.post('/', function(req, res){
   console.log(req.body.user);
   res.redirect('back');
 });
+```
 
-When using methods such as _PUT_ with a form, we can utilize a hidden input named _\_method_, which can be used to alter the HTTP method. To do so we first need the _methodOverride_ middleware, which should be placed below _bodyParser_ so that it can utilize it's _req.body_ containing the form values.
+当想在一个表单中使用像 PUT 这样的方法，我们可以使用一个命名为 `_method` 的 hidden `input`，它可以用以修改 HTTP 方法。为了做这个，我们首先需要 `methodOverride` 中间件，它必须出现于 `bodyParser` 后面，以便使用它的 `req.body`中所包含的表单值。
 
+```js
 app.use(express.bodyParser());
 app.use(express.methodOverride());
+```
 
-The reason that these are not always defaults, is simply because these are not required for Express to be fully functional. Depending on the needs of your application, you may not need these at all, your methods such as _PUT_ and _DELETE_ can still be accessed by clients which can use them directly, although _methodOverride_ provides a great solution for forms. Below shows what the usage of _PUT_ might look like:
+对于这些方法为何不是默认拥有，简单来说只是因为它并不是 Express 所要求完整功能所必须。方法的使用依赖于你的应用，你可能并不需要它们，客户端依然能使用像 PUT 和 DELETE 这样的方法，你可以直接使用它们，因为 `methodOverride` 为 form 提供了一个非常不错的解决方案。下面将示范如何使用 PUT 这个方法，看起来可能像：
 
+```
 <form method="post" action="/">
   <input type="hidden" name="_method" value="put" />
   <input type="text" name="user[name]" />
@@ -472,6 +479,7 @@ app.put('/', function(){
     console.log(req.body.user);
     res.redirect('back');
 });
+```
 
 ### Error Handling
 
