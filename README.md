@@ -281,37 +281,45 @@ app.get('*', function(req, res){
 app.listen(3000); 
 ```
 
-### Middleware
+### 中间件
 
-Middleware via [Connect](http://github.com/senchalabs/connect) can be
-passed to _express.createServer()_ as you would with a regular Connect server. For example:
+使用的 [Connect](http://github.com/senchalabs/connect) 中间件（属性）通常伴随着你的一个常规 Connect 服务器，被传到 `express.createServer()` 。如：
 
-  var express = require('express');
+```js
+var express = require('express');
 
 var app = express.createServer(
   	  express.logger()
   	, express.bodyParser()
   );
+```
 
-Alternatively we can _use()_ them which is useful when adding middleware within _configure()_ blocks, in a progressive manner.
+另外，在 `configure()` 块内 （within `configure()` blocks），一个革命的小屋（笑，in a progressive manner），我们还可以方便地使用 `use()` 来添加中间件。
 
+```js
 app.use(express.logger({ format: ':method :url' }));
+```
 
-Typically with connect middleware you would _require('connect')_ like so:
+通常，使用 connect 中间件你可能会用到 `require('connect')`，像这样：
 
+```js
 var connect = require('connect');
 app.use(connect.logger());
 app.use(connect.bodyParser());
+```
 
-This is somewhat annoying, so express re-exports these middleware properties, however they are _identical_:
+这在某种程度上来说有点不爽，所以 express 重导出（re-exports）了这些中间件属性，尽管他们是一样的:
 
+```js
 app.use(express.logger());
 app.use(express.bodyParser());
+```
 
-Middleware ordering is important, when Connect receives a request the _first_ middleware we pass to _createServer()_ or _use()_ is executed with three parameters, _request_, _response_, and a callback function usually named _next_. When _next()_ is invoked the second middleware will then have it's turn and so on. This is important to note because many middleware depend on each other, for example _methodOverride()_ checks _req.body._method_ for the HTTP method override, however _bodyParser()_ parses the request body and populates _req.body_. Another example of this is cookie parsing and session support, we must first _use()_ _cookieParser()_ followed by _session()_.
+中间件的顺序非常重要，当 Connect 收到一个请求，我们传到 `createServer()` 或者 `use()` 执行的第一个中间件将附带三个参数，request、response，以及一个回调函数（通常是 `next`）。当 `next()` 被调用，将轮到第二个中间件，依此类推。之所以这是值得注意的，是因为很多中间件彼此依赖，例如 `methodOverride()` 查询 `req.body` 方法来检测 HTTP 方法重载，另一方面 `bodyParser()` 解析请求内容并将其于存于 `req.body`。另一个例子是 cookie 解析和 session 支持，我们必须先 `use()` `cookieParser()` 紧接着 `session()`。
 
-Many Express applications may contain the line _app.use(app.router)_, while this may appear strange, it's simply the middleware function that contains all defined routes, and performs route lookup based on the current request url and HTTP method. Express allows you to position this middleware, though by default it will be added to the bottom. By positioning the router, we can alter middleware precedence, for example we may want to add error reporting as the _last_ middleware so that any exception passed to _next()_ will be handled by it, or perhaps we want static file serving to have low precedence, allowing our routes to intercept requests to a static file to count downloads etc. This may look a little like below
+很多 Express 应用都包含这样的一行 `app.use(app.router)`，这看起来可能有点奇怪，其实它仅仅是一个包含所有定义路由规则，并执行基于现有 URL 请求和 HTTP 方法路由查找的一个中间件功能。Express 允许你决定其位置（to position），不过默认情况下它被放置于底部。通过改变路由的位置，我们可以改变中间件的优先级，譬如我们想把错误报告做为最后的中间件，以便任何传给 `next()` 的异常都可以通过它来处理；又或者我们希望静态文件服务优先级更低，以允许我们的路由可以监听单个静态文件请求的下载次数，等等。这看起来差不多是这样的：
 
+```js
 app.use(express.logger(...));
 app.use(express.bodyParser(...));
 app.use(express.cookieParser(...));
@@ -319,9 +327,11 @@ app.use(express.session(...));
 app.use(app.router);
 app.use(express.static(...));
 app.use(express.errorHandler(...));
+```
 
-First we add _logger()_ so that it may wrap node's _req.end()_ method, providing us with response-time data. Next the request's body will be parsed (if any), followed by cookie parsing and session support, meaning _req.session_ will be defined by the time we hit our routes in _app.router_. If a request such as _GET /javascripts/jquery.js_ is handled by our routes, and we do not call _next()_ then the _static()_ middleware will never see this request, however if were to define a route as shown below, we can record stats, refuse downloads, consume download credits etc.
+首先我们添加 `logger()`，它可能包含 node 的 `req.end()` 方法，提供我们响应时间的数据。接下来请求的内容将会被解析（如果有数据的话），坚持着是 cookie 解析和 session 支持，同时 `req.session` 将会在触发 `app.router` 中的路由时定义，这时我们并不调用 `next()`，因此 `static()` 中间件将不会知道这个请求，如若已经定义了如下一个路由，我们则可以记录各种状态、拒绝下载和消耗下载点数等。
 
+```js
 var downloads = {};
 
 app.use(app.router);
@@ -333,23 +343,26 @@ app.get('/*', function(req, res, next){
   downloads[file]++;
   next();
 });
+```
 
+### 路由中间件
 
-### Route Middleware
+路由可以利用路由器中间件，传递一个以上的回调函数（或者数组）到其方法中。这个特性非常有利于限制访问、通过路由下载数据，等等。
 
-Routes may utilize route-specific middleware by passing one or more additional callbacks (or arrays) to the method. This feature is extremely useful for restricting access, loading data used by the route etc.
+通常异步数据检索看起来可能像下例，我们使用 `:id` 参数，尝试加载一个用户： 
 
-Typically async data retrieval might look similar to below, where we take the _:id_ parameter, and attempt loading a user. 
-
+```js
 app.get('/user/:id', function(req, res, next){
   loadUser(req.params.id, function(err, user){
     if (err) return next(err);
     res.send('Viewing user ' + user.name);
   });
 });
+```
 
-To keep things DRY and to increase readability we can apply this logic within a middleware. As you can see below, abstracting this logic into middleware allows us to reuse it, and clean up our route at the same time. 
+为保证 DRY 原则和增加可读，我们可以把这个逻辑应用于一个中间件内。如下所示，抽象这个逻辑到中间件内将允许你重用它，同时保持了我们路由的简洁。
 
+```js
 function loadUser(req, res, next) {
   // You would fetch your user from the db
   var user = users[req.params.id];
@@ -364,9 +377,11 @@ function loadUser(req, res, next) {
 app.get('/user/:id', loadUser, function(req, res){
   res.send('Viewing user ' + req.user.name);
 });
+```
 
-Multiple route middleware can be applied, and will be executed sequentially to apply further logic such as restricting access to a user account. In the example below only the authenticated user may edit his/her account.
+多重路由可以，并按顺序应用到更深一层的逻辑，如限制一个用户账号的访问。下面的例子只允许通过鉴定的用户才可以编辑他（她）的账号。
 
+```js
 function andRestrictToSelf(req, res, next) {
   req.authenticatedUser.id == req.user.id
     ? next()
@@ -376,9 +391,11 @@ function andRestrictToSelf(req, res, next) {
 app.get('/user/:id/edit', loadUser, andRestrictToSelf, function(req, res){
   res.send('Editing user ' + req.user.name);
 });
+```
 
-Keeping in mind that middleware are simply functions, we can define function that _returns_ the middleware in order to create a more expressive and flexible solution as shown below.
+时刻铭记路由只是简单的函数，如下所示，我们可以定义返回中间件的函数以创建一个更具表现力，更灵活的方案。
 
+```js
 function andRestrictTo(role) {
   return function(req, res, next) {
     req.authenticatedUser.role == role
@@ -390,9 +407,11 @@ function andRestrictTo(role) {
 app.del('/user/:id', loadUser, andRestrictTo('admin'), function(req, res){
   res.send('Deleted user ' + req.user.name);
 });
+```
 
-Commonly used "stacks" of middleware can be passed as an array (_applied recursively_), which can be mixed and matched to any degree.
+常用的中间件“堆栈”可以通过一个数组来传递（会被递归应用），这些中间件可以混着、匹配到任何层次（which can be mixed and matched to any degree）。
 
+```js
 var a = [middleware1, middleware2]
   , b = [middleware3, middleware4]
   , all = [a, b];
@@ -403,10 +422,12 @@ app.get('/bar', a, function(){});
 app.get('/', a, middleware3, middleware4, function(){});
 app.get('/', a, b, function(){});
 app.get('/', all, function(){});
+```
 
-For this example in full, view the [route middleware example](http://github.com/visionmedia/express/blob/master/examples/route-middleware/app.js) in the repository.
+对于这个实例的完整代码，请看 [route middleware example](http://github.com/visionmedia/express/blob/master/examples/route-middleware/app.js) 这个仓库。
 
-There are times when we may want to "skip" passed remaining route middleware, but continue matching subsequent routes. To do this we invoke `next()` with the string "route" `next('route')`. If no remaining routes match the request url then Express will respond with 404 Not Found.
+我们可能会有多次想要“跳过”剩余的路由中间件，继续匹配后续的路由。做到这点，我们只需调用 `next()` 时带上 `'route'` 字符串 —— `next('route')`。如果没有余下的路由匹配到请求的 URL，Express 将会返回 `404 Not Found`。
+
 
 ### HTTP Methods
 
@@ -414,11 +435,13 @@ We have seen _app.get()_ a few times, however Express also exposes other familia
 
 A common example for _POST_ usage, is when "submitting" a form. Below we simply set our form method to "post" in our html, and control will be given to the route we have defined below it.
 
- <form method="post" action="/">
+```html
+<form method="post" action="/">
      <input type="text" name="user[name]" />
      <input type="text" name="user[email]" />
      <input type="submit" value="Submit" />
- </form>
+</form>
+```
 
 By default Express does not know what to do with this request body, so we should add the _bodyParser_ middleware, which will parse _application/x-www-form-urlencoded_ and _application/json_ request bodies and place the variables in _req.body_. We can do this by "using" the middleware as shown below:
 
