@@ -467,7 +467,7 @@ app.use(express.methodOverride());
 
 对于这些方法为何不是默认拥有，简单来说只是因为它并不是 Express 所要求完整功能所必须。方法的使用依赖于你的应用，你可能并不需要它们，客户端依然能使用像 PUT 和 DELETE 这样的方法，你可以直接使用它们，因为 `methodOverride` 为 form 提供了一个非常不错的解决方案。下面将示范如何使用 PUT 这个方法，看起来可能像：
 
-```
+```html
 <form method="post" action="/">
   <input type="hidden" name="_method" value="put" />
   <input type="text" name="user[name]" />
@@ -481,18 +481,67 @@ app.put('/', function(){
 });
 ```
 
-### Error Handling
+### 错误处理
 
-Error handling middleware are simply middleware with an arity of 4, aka
-the signature _(err, req, res, next)_. When you _next(err)_ an error,
-only these middleware are executed and have a chance to respond. For example:
+Express 提供了 `app.error()` 方法以便接收到的异常在一个路由里抛出，或者传到 `next(err)` 中。下面这个例子将基于特定的 NotFound 异常处理不同的页面：
 
-app.use(app.bodyParser());
-app.use(app.methodOverride());
-app.use(app.router);
-app.use(function(err, req, res, next){
-  res.send(500, 'Server error');
+```js
+function NotFound(msg){
+  this.name = 'NotFound';
+  Error.call(this, msg);
+  Error.captureStackTrace(this, arguments.callee);
+}
+
+NotFound.prototype.__proto__ = Error.prototype;
+
+app.get('/404', function(req, res){
+  throw new NotFound;
 });
+
+app.get('/500', function(req, res){
+  throw new Error('keyboard cat!');
+});
+```
+
+如下述，我们可以多次调用 `app.error()`。这里我们检测 NotFound 的实例，并显示 404 页面，或者传到 `next` 错误处理器。值得注意的是这些处理器可以在任何地方定义，因为他们将会在 `listen()` 的时候被放置于路由处理器下面。它允许在 `configure()` 块内有定义，以便我们能基于环境用不同的异常处理方式。
+
+```js
+app.error(function(err, req, res, next){
+    if (err instanceof NotFound) {
+        res.render('404.jade');
+    } else {
+        next(err);
+    }
+});
+```
+
+Here we assume all errors as 500 for the simplicity(朴素) of this demo, however you can choose whatever you like. For example when node performs filesystem syscalls, you may receive an error object with the error.code of ENOENT, meaning “no such file or directory”, we can utilize(利用) this in our error handling and display a page specific to this if desired.
+
+为求简洁（for the simplicity），这里我们假定这个 demo 的所有错误为 500，当然你可以可以选择自己喜欢的。像 node 执行文件系统的系统调用时，你可能会接收到一个带有 ENOENT 的 `error.code`，意思为 “不存在这样的文件或目录”的错误，我们可以在错误处理器中使用，或者当有需要时可显示一个指定的页面。
+
+```js
+app.error(function(err, req, res){
+  res.render('500.jade', {
+     error: err
+  });
+});
+```
+
+我们的 app 同样可以利用 Connect 的 `errorHandler` 中间件来汇报异常。譬如当我们希望在 “开发” 环境输出 `stderr` 异常时，我们可以使用：
+
+```js
+app.use(express.errorHandler({ dumpExceptions: true }));
+```
+
+Also during development we may want fancy html pages to show exceptions that are passed or thrown, so we can set showStack to true:
+
+同时在开发阶段我们可能需要在花哨的 HTML 页面显示我们传递和抛出的异常，对此我们可以把 `showStack` 设置为 `true`。
+
+```js
+app.use(express.errorHandler({ showStack: true, dumpExceptions: true }));
+```
+
+`errorHandler` 中间件还可以在 `Accept: application/json` 存在的时候返回 json，这对于开发重度依赖客户端 Javascript 的应用非常有用。
 
 ### Route Param Pre-conditions
 
