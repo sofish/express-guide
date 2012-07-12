@@ -515,8 +515,6 @@ app.error(function(err, req, res, next){
 });
 ```
 
-Here we assume all errors as 500 for the simplicity(朴素) of this demo, however you can choose whatever you like. For example when node performs filesystem syscalls, you may receive an error object with the error.code of ENOENT, meaning “no such file or directory”, we can utilize(利用) this in our error handling and display a page specific to this if desired.
-
 为求简洁（for the simplicity），这里我们假定这个 demo 的所有错误为 500，当然你可以可以选择自己喜欢的。像 node 执行文件系统的系统调用时，你可能会接收到一个带有 ENOENT 的 `error.code`，意思为 “不存在这样的文件或目录”的错误，我们可以在错误处理器中使用，或者当有需要时可显示一个指定的页面。
 
 ```js
@@ -532,8 +530,6 @@ app.error(function(err, req, res){
 ```js
 app.use(express.errorHandler({ dumpExceptions: true }));
 ```
-
-Also during development we may want fancy html pages to show exceptions that are passed or thrown, so we can set showStack to true:
 
 同时在开发阶段我们可能需要在花哨的 HTML 页面显示我们传递和抛出的异常，对此我们可以把 `showStack` 设置为 `true`。
 
