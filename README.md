@@ -679,7 +679,7 @@ __注意:__ 请谨慎使用部件集合器，渲染一个长度为 100 的数组
 
 View 查找相对于父级 view （路径）执行，如我们有一个 view 页面叫作 views/user/list.jade，并且在其内部写有 `partial('edit')` 则它会尝试加载 views/user/edit.jade，同理 `partial('../messages')` 将会加载 views/messages.jade。
 
-View 系统还支持模板索引，允许你使用一个与 view 同名的目录。例如在一个路由中，`res.render('users')` 得到的非 views/users.jade 即 views/users/index.jade。（译注：先处理 `&lt;path&gt;.&lt;engine&gt;` 的情况，再处理 `&lt;path&gt;/&lt;index.&lt;engine&gt;` 的情况，详情可见 [view.js](https://github.com/visionmedia/express/blob/master/lib/view.js)。）
+View 系统还支持模板索引，允许你使用一个与 view 同名的目录。例如在一个路由中，`res.render('users')` 得到的非 views/users.jade 即 views/users/index.jade。（译注：先处理 &lt;path&gt;.&lt;engine&gt; 的情况，再处理 &lt;path&gt;/&lt;index.&lt;engine&gt; 的情况，详情可见 [view.js](https://github.com/visionmedia/express/blob/master/lib/view.js)。）
 
 当使用上述 view 索引，我们在与 view 同一个目录下，使用 `partial('users')` 中引用 views/users/index.jade，与此同时 view 系统会尝试索引 `../users/index`，而无须我们调用 `partial('users')`。
 
@@ -693,45 +693,51 @@ View 系统还支持模板索引，允许你使用一个与 view 同名的目录
 * [CoffeeKup](http://github.com/mauricemach/coffeekup) 基于 CoffeeScript 的模板
 * [jQuery Templates](https://github.com/kof/node-jqtpl) 
 
-### Session Support
+### Session 支持
 
-Sessions support can be added by using Connect's _session_ middleware. To do so we also need the _cookieParser_ middleware place above it, which will parse and populate cookie data to _req.cookies_.
+Session 支持可以通过使用 Connect 的 session 中间件来获得，为此通常我们同时需要在其前加上 `cookieParser` 中间件，它将解析和存储 cookie 数据于 `req.cookies` 中。
 
+```js
 app.use(express.cookieParser());
 app.use(express.session({ secret: "keyboard cat" }));
+```
 
-By default the _session_ middleware uses the memory store bundled with Connect, however many implementations exist. For example [connect-redis](http://github.com/visionmedia/connect-redis) supplies a [Redis](http://code.google.com/p/redis/) session store and can be used as shown below:
+默认情况下 session 中间件使用 Connect 内置的内存存储，然而还有其他多种实现方式。如 [connect-redis](http://github.com/visionmedia/connect-redis) 提供了一种 [Redis](http://code.google.com/p/redis/) 的 session 存储，它这可像下面这样被使用：
 
+```js
 var RedisStore = require('connect-redis')(express);
 app.use(express.cookieParser());
 app.use(express.session({ secret: "keyboard cat", store: new RedisStore }));
+```
 
-Now the _req.session_ and _req.sessionStore_ properties will be accessible to all routes and subsequent middleware. Properties on _req.session_ are automatically saved on a response, so for example if we wish to shopping cart data:
+至此，`req.session` 和 `req.sessionStore` 属性将可以被所有路由和后继的中间件使用。在 `req.session` 上的所有属性都会在一个响应中被自动保存下来，譬如当我们想要添加数据到购物车： 
 
+```js
 var RedisStore = require('connect-redis')(express);
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 app.use(express.session({ secret: "keyboard cat", store: new RedisStore }));
 
 app.post('/add-to-cart', function(req, res){
-  // Perhaps we posted several items with a form
-  // (use the bodyParser() middleware for this)
+  // 我们可能通过一个表单 POST 出多个 item
+  // (在些使用 bodyParser() 中间件)
   var items = req.body.items;
   req.session.items = items;
   res.redirect('back');
 });
 
 app.get('/add-to-cart', function(req, res){
-  // When redirected back to GET /add-to-cart
-  // we could check req.session.items && req.session.items.length
-  // to print out a message
+  // 当返回时，页面 GET /add-to-cart
+  // 我们可以检查 req.session.items && req.session.items.length
+  // 来打印出提示
   if (req.session.items && req.session.items.length) {
     req.notify('info', 'You have %s items in your cart', req.session.items.length);
   }
   res.render('shopping-cart');
 });
+```
 
-The _req.session_ object also has methods such as _Session#touch()_, _Session#destroy()_, _Session#regenerate()_ among others to maintain and manipulate sessions. For more information view the [Connect Session](http://senchalabs.github.com/connect/middleware-session.html) documentation.
+对于 `req.session` 对旬，它还有像 `Session#touch()`、`Session#destroy()`、 `Session#regenerate()` 等用以维护和操作 session 的方法。更多的详情请看 [Connect Session](http://senchalabs.github.com/connect/middleware-session.html) 的文档。
 
 ### Migration Guide
 
