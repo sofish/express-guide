@@ -2,9 +2,9 @@
 
 这是对 [express.js guide](http://expressjs.com/guide.html) 的一个翻译。翻译人：[Sofish Lin](http://sofish.de)（[twitter](http://twitter.com/sofish)）。
 
-翻译此文档的目的是学习 Express，因为翻译意味着一种责任，因此边看 Express 源代码边翻。在容易混淆的地方都加上了译注。给自己做一个记录保存也来，也给有需要的人。当然，由于个人水平的原因，可能并不能最恰当地传达作者的幽默，也少不了错误，还请各位有看到的同学多多指正。
+翻译此文档的目的是学习 Express，因为翻译意味着一种责任，因此边看 Express 源代码边翻。在容易混淆的地方都加上了译注。给自己做一个记录保存下来，也给有需要的人一份参考。当然，由于个人水平的原因，并不能最恰当地传达作者的幽默，也少不了错误，还请各位有看到的同学多多指正。
 
-有任何问题，请直接给我提 issue、pull request 或者在 [twitter](http://twitter.com/sofish) AT我。
+如有任何问题，请直接给我提 issue、pull request 或者在 twitter at-at 我。
 
 ----------------------------------------------------------
 
@@ -17,6 +17,7 @@ $ npm install express
 或者在任何地方使用可执行的 `express(1)` 安装： 
 
 ```bash
+\# 译注：强烈建议这种方式
 $ npm install -g express
 ```
 
@@ -45,7 +46,8 @@ $ node app.js
 
 ### 创建一个服务器
 
-要创建一个 `express.HTTPServer_` 实例，只需调用（simply invoke）`createServer()` 方法。 通用些 实例 app 我们可以定义基于 HTTP 动作（HTTP Verbs）的路由，以 `app.get()` 为例：
+要创建一个 `express.HTTPServer` 实例，只需调用 `createServer()` 方法。 通用这个应用实例，我们可以定义基于 HTTP 动作（HTTP Verbs）的路由，以 `app.get()` 为例：
+
 ```js
 var app = require('express').createServer();
 
@@ -59,13 +61,14 @@ app.listen(3000);
 ### 创建一个 HTTPS 服务器
 
 如上述初始化一个 `express.HTTPSServer` 实例。然后我们给它传一个配置对象，接受 `key`、`cert` 和其他在 [https 文档](http://nodejs.org/docs/v0.3.7/api/https.html#https.createServer) 所提到的（属性/方法）。
+
 ```js
  var app = require('express').createServer({ key: ... });
 ```
 
 ### 配置
 
-Express 支持任意环境，如产品阶段（production）和开发阶段（development）。开发者可以使用 `configure()` 方法来当前所需环境。如果 `configure()` 的调用不包含任何环境名，它将运行于各阶段环境中所指定的回调。
+Express 支持任意环境，如产品阶段（production）和开发阶段（development）。开发者可以使用 `configure()` 方法来设置当前所需环境。如果 `configure()` 的调用不包含任何环境名，它将运行于所有环境中所指定的回调。
 
 <mark>译注：</mark> 像 _production_ / _development_ / _stage_ 这些别名都是可以自已取的，如 [application.js](https://github.com/visionmedia/express/blob/master/lib/application.js) 中的 `app.configure` 所示。实际用法看下面例子。
 
@@ -73,15 +76,15 @@ Express 支持任意环境，如产品阶段（production）和开发阶段（de
 
 ```js
 app.configure(function(){
-		app.use(express.methodOverride());
-		app.use(express.bodyParser());
-		app.use(app.router);
-	});
+	app.use(express.methodOverride());
+	app.use(express.bodyParser());
+	app.use(app.router);
+});
 
-	app.configure('development', function(){
-		app.use(express.static(__dirname + '/public'));
-		app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-	});
+app.configure('development', function(){
+	app.use(express.static(__dirname + '/public'));
+	app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+});
 
 app.configure('production', function(){
   var oneYear = 31557600000;
@@ -90,7 +93,7 @@ app.configure('production', function(){
 });
 ```
 
-对于相似的环境你可以（译注：这里`可以`比`可能`更适合中文表达，you may also）传递多个环境字符串：
+对于相似的环境你可以传递多个环境字符串：
 
 ```js
 app.configure('stage', 'prod', function(){
@@ -98,7 +101,7 @@ app.configure('stage', 'prod', function(){
 });
 ```
 
-对于内部的任意设置（[#](https://twitter.com/sofish/status/219430499725217794)For internal and arbitrary settings) Express 提供了 `set(key[, val])`、 `enable(key)` 和 `disable(key)` 方法:
+对于任何内部设置（[#](https://twitter.com/sofish/status/219430499725217794))，Express 提供了 `set(key[, val])`、 `enable(key)` 和 `disable(key)` 方法:
 
 <mark>译注：</mark>设置详见：[application.js](https://github.com/visionmedia/express/blob/master/lib/application.js) 的 `app.set`。
 
@@ -118,7 +121,7 @@ app.configure('stage', 'prod', function(){
     // => false
  });
 ```
-变更环境我们可以设置 `NODE_ENV` 环境亦是，如：
+变更环境我们可以设置 `NODE_ENV` 环境变量，如：
 
 ```bash
 $ NODE_ENV=production node app.js
@@ -212,7 +215,7 @@ $ curl http://dev:3000/users/1..15
 /user/12.json
 ```
 
-举个例子，我们可以使用 `POST` 发送 json 数据，通过 `bodyParser` 这个可以解析 json 请求内容（或者其他内容）的中间件来返回数据，将将返回结果存于 `req.body` 中：
+举个例子，我们可以使用 `POST` 发送 json 数据，通过 `bodyParser` 这个可以解析 json 请求内容（或者其他内容）的中间件来返回数据，并将返回结果存于 `req.body` 中：
 
 ```js
 var express = require('express')
@@ -229,9 +232,9 @@ app.listen(3000);
 
 通常我们可以使用一个像 `user/:id` 这样，没有（命名）限制的“傻瓜”式的占位符。然而比方说，我们要限制用户 id 只能是数字，那么我们可能使用 `/user/:id([0-9]+)`，这个将仅当占位符是包含至少一位数字时才生效（适配，match）。
 
-### 传递进路控制（Passing Route Control）
+### 进路控制（Passing Route Control）
 
-我们可以通过调用第三个参数，`next()`函数，来控制下一个适配的路由。如果找不到适配，控制权将会传回给 Connect，同时中间件将会按在 `use()` 中添加的顺序被依次调用。道理同样适应于多个定义到同一路径的路由，他们将会依次被调用直到其中某个不调用 `next()` 将决定做出请求响应。
+我们可以通过调用第三个参数，`next()` 函数，来控制下一个适配的路由。如果找不到适配，控制权将会传回给 Connect，同时中间件将会按在 `use()` 中添加的顺序被依次调用。道理同样适应于多个定义到同一路径的路由，他们将会依次被调用直到其中某个不调用 `next()` 而决定做出请求响应。
 
 ```js
 app.get('/users/:id?', function(req, res, next){
@@ -242,7 +245,6 @@ app.get('/users/:id?', function(req, res, next){
 		next();
 	}
 });
-
 
 app.get('/users', function(req, res){
 	// do something else
@@ -298,7 +300,7 @@ var app = express.createServer(
   );
 ```
 
-另外，在 `configure()` 块内 （within `configure()` blocks），一个革命的小屋（笑，in a progressive manner），我们还可以方便地使用 `use()` 来添加中间件。
+另外，在 `configure()` 块内 —— 这个渐进式的宫殿（译注：笑^^，in a progressive manner），我们还可以方便地使用 `use()` 来添加中间件。
 
 ```js
 app.use(express.logger({ format: ':method :url' }));
@@ -319,7 +321,7 @@ app.use(express.logger());
 app.use(express.bodyParser());
 ```
 
-中间件的顺序非常重要，当 Connect 收到一个请求，我们传到 `createServer()` 或者 `use()` 执行的第一个中间件将附带三个参数，request、response，以及一个回调函数（通常是 `next`）。当 `next()` 被调用，将轮到第二个中间件，依此类推。之所以这是值得注意的，是因为很多中间件彼此依赖，例如 `methodOverride()` 查询 `req.body` 方法来检测 HTTP 方法重载，另一方面 `bodyParser()` 解析请求内容并将其于存于 `req.body`。另一个例子是 cookie 解析和 session 支持，我们必须先 `use()` `cookieParser()` 紧接着 `session()`。
+中间件的顺序非常重要，当 Connect 收到一个请求，我们传到 `createServer()` 或者 `use()` 执行的第一个中间件将附带三个参数，request、response，以及一个回调函数（通常是 `next`）。当 `next()` 被调用，将轮到第二个中间件，依此类推。之所以说这是值得注意的，是因为很多中间件彼此依赖，例如 `methodOverride()` 查询 `req.body` 方法来检测 HTTP 方法重载，另一方面 `bodyParser()` 解析请求内容并将其于寄存于 `req.body`。另一个例子是 cookie 解析和 session 支持，我们必须先 `use()` `cookieParser()` 紧接着 `session()`。
 
 很多 Express 应用都包含这样的一行 `app.use(app.router)`，这看起来可能有点奇怪，其实它仅仅是一个包含所有定义路由规则，并执行基于现有 URL 请求和 HTTP 方法路由查找的一个中间件功能。Express 允许你决定其位置（to position），不过默认情况下它被放置于底部。通过改变路由的位置，我们可以改变中间件的优先级，譬如我们想把错误报告做为最后的中间件，以便任何传给 `next()` 的异常都可以通过它来处理；又或者我们希望静态文件服务优先级更低，以允许我们的路由可以监听单个静态文件请求的下载次数，等等。这看起来差不多是这样的：
 
@@ -333,7 +335,7 @@ app.use(express.static(...));
 app.use(express.errorHandler(...));
 ```
 
-首先我们添加 `logger()`，它可能包含 node 的 `req.end()` 方法，提供我们响应时间的数据。接下来请求的内容将会被解析（如果有数据的话），坚持着是 cookie 解析和 session 支持，同时 `req.session` 将会在触发 `app.router` 中的路由时定义，这时我们并不调用 `next()`，因此 `static()` 中间件将不会知道这个请求，如若已经定义了如下一个路由，我们则可以记录各种状态、拒绝下载和消耗下载点数等。
+首先我们添加 `logger()`，它可能包含 node 的 `req.end()` 方法，提供我们响应时间的数据。接下来请求的内容将会被解析（如果有数据的话），紧接着的是 cookie 解析和 session 支持，同时 `req.session` 将会在触发 `app.router` 中的路由时被定义，这时我们并不调用 `next()`，因此 `static()` 中间件将不会知道这个请求，如若已经定义了如下一个路由，我们则可以记录各种状态、拒绝下载和消耗下载点数等。
 
 ```js
 var downloads = {};
@@ -364,7 +366,7 @@ app.get('/user/:id', function(req, res, next){
 });
 ```
 
-为保证 DRY 原则和增加可读，我们可以把这个逻辑应用于一个中间件内。如下所示，抽象这个逻辑到中间件内将允许你重用它，同时保持了我们路由的简洁。
+为保证 DRY 原则和提升可读，我们可以把这个逻辑应用于一个中间件内。如下所示，抽象这个逻辑到中间件内将允许你重用它，同时保证了我们路由的简洁。
 
 ```js
 function loadUser(req, res, next) {
@@ -519,7 +521,7 @@ app.error(function(err, req, res, next){
 });
 ```
 
-为求简洁（for the simplicity），这里我们假定这个 demo 的所有错误为 500，当然你可以可以选择自己喜欢的。像 node 执行文件系统的系统调用时，你可能会接收到一个带有 ENOENT 的 `error.code`，意思为 “不存在这样的文件或目录”的错误，我们可以在错误处理器中使用，或者当有需要时可显示一个指定的页面。
+为求简洁（for the simplicity），这里我们假定这个 demo 的所有错误为 500，当然你可以可以选择自己喜欢的。像 node 执行文件系统的系统调用时，你可能会接收到一个带有 ENOENT 的 `error.code`，意思为 “不存在这样的文件或目录” 的错误，我们可以在错误处理器中使用，或者当有需要时可显示一个指定的页面。
 
 ```js
 app.error(function(err, req, res){
@@ -545,7 +547,7 @@ app.use(express.errorHandler({ showStack: true, dumpExceptions: true }));
 
 ### Route 参数预处理
 
-路由参数预处理，通过隐式数据加载和请求验证，可以大大提升你程序的可读性。譬如你要持续地从多个路由获取基本数据，比如通过 `/user/:id` 加载一个用户，通常来说我们可能像这样来做：
+路由参数预处理，通过隐式数据加载和请求验证，可以大大提升你程序的可读性。打个比方，你通常需要持续地从多个路由获取基本数据。像用 `/user/:id` 加载一个用户，通常来说我们可能会这样干：
 
 ```js
 app.get('/user/:userId', function(req, res, next){
@@ -556,7 +558,7 @@ app.get('/user/:userId', function(req, res, next){
 }); 
 ```
 
-通过预处理，我们的参数可以映射到执行验证、控制(coercion)，甚至从数据库加载数据。如下我们带着参数名调用 `app.param()` 希望将其映射于某些中间件。如你所见，我们接受代表占位符值的 `id` 参数。我们使用这个，我们如常加载用户并处理错误，并简单地调用 `next()` 把控制权交由下一个预处理或者路由处理器。
+通过预处理，我们的参数可以映射到执行验证、控制(coercion)，甚至从数据库加载数据的回调。如下我们带着参数名调用 `app.param()` 希望将其映射于某些中间件。如你所见，我们接受代表占位符值的 `id` 参数。使用这个，我们如常加载用户并处理错误，以及简单地调用 `next()` 来把控制权交由下一个预处理或者路由处理器。
 
 ```js
 app.param('userId', function(req, res, next, id){
@@ -569,7 +571,7 @@ app.param('userId', function(req, res, next, id){
 });
 ```
 
-一旦这样做，如上所述将会大大地提升路由的可读性，并且允许我们轻松地在整个程序中共享逻辑：
+一旦这样做，上所述将会大大地提升路由的可读性，并且允许我们轻松地在整个程序中共享逻辑：
 
 ```js
 app.get('/user/:userId', function(req, res){
@@ -579,7 +581,7 @@ app.get('/user/:userId', function(req, res){
 
 ### View 处理
 
-View 文件件使用 "&lt;name&gt;.&lt;engine&gt;" 这样的格式，其中 &lt;engine&gt; 是被 `require` 进来模块的名。例如 `layout.ejs` 将告诉 view 系统去 `require('ejs')`，被加载的模块必须导出 `exports.compile(str, options)` 方法，并返回一个 Function 来适合 Express。`app.register()` 可用以改变这种默认行为，将文件扩展名映射到特定的引擎。譬如 “foo.html” 可以由 ejs 来处理。
+View 文件件使用 &lt;name&gt;.&lt;engine&gt; 这样的格式，其中 &lt;engine&gt; 是被 `require` 进来模块的名。例如 `layout.ejs` 将告诉 view 系统去 `require('ejs')`，被加载的模块必须(导出) `exports.compile(str, options)` 方法，并返回一个 Function 来适应 Express。`app.register()` 可用以改变这种默认行为，将文件扩展名映射到特定的引擎。譬如 “foo.html” 可以由 ejs 来处理。
 
 下面这个例子使用 [Jade](http://github.com/visionmedia/jade) 来处理 index.html。因为我们并未使用 `layout: false`，index.jade 处理后的内容将会被传入到 layout.jade 中一个名为 body 的本地变量。
 
@@ -621,7 +623,7 @@ app.set('view options', {
 });
 ```
 
-在需要的时候，这可以在 `res.render()` 调用的内部重载：
+在需要的时候，这可以在 `res.render()` 调用的内部进行重载：
 
 ```js
 res.render('myview.ejs', { layout: true });
@@ -656,7 +658,7 @@ app.set('view options', {
 
 ### View 部件
 
-Express 的 view 系统内置了部件（partials） 和集合器（collections）的支持，相当于用一个 “迷你” 的 view 替换一个文档碎片（document fragment）。示例，在一个 view 中反复迭代来显示评论，我们可以使用部件集：
+Express 的 view 系统内置了部件（partials） 和集合器（collections）的支持，相当于用一个 “迷你” 的 view 替换一个文档碎片（document fragment）。示例，在一个 view 中重复渲染来显示评论，我们可以使用部件集：
 
 ```js
 partial('comment', { collection: comments });
@@ -670,14 +672,14 @@ partial('comment', comments);
 
 在使用中，部件集无偿地提供了一些 “神奇” 本地变量的支持：
 
-* _firstInCollection_  true，当它是第一个对象的时候
+* _firstInCollection_  `true`，当它是第一个对象的时候
 * _indexInCollection_  在集合器对象中的索引
-* _lastInCollection_  true，当它是最后一个对象的时候
+* _lastInCollection_  `true`，当它是最后一个对象的时候
 * _collectionLength_  集合器对象的长度
 
-本地变量的传递（生成）具备更高的优先级，同时，传到父级 view 的本地变量对于子级 view 同样适应。例如当我们用 `partial('blog/post', post)` 来渲染一个博客文章，它将会生成 一个 `post` 本地变量，在调用这个函数的 view 中存在本地变量 `user`，它将同样对 `blog/post` 有效。（译注：这里 partial 比较像 php 中的 include 方法）。
+本地变量的传递（生成）具备更高的优先级，同时，传到父级 view 的本地变量对于子级 view 同样适应。例如当我们用 `partial('blog/post', post)` 来渲染一个博客文章，它将会生成一个 `post` 本地变量，在调用这个函数的 view 中存在本地变量 `user`，它将同样对 `blog/post` 有效。（译注：这里 partial 比较像 php 中的 include 方法）。
 
-__注意:__ 请谨慎使用部件集合器，渲染一个长度为 100 的数组相当于我们需要处理 100 个 view。对于简单的集合，最好重复内置，而非使用部件集合器以避免开销。
+__注意:__ 请谨慎使用部件集合器，渲染一个长度为 100 的部件集合数组相当于我们需要处理 100 个 view。对于简单的集合，最好重复内置，而非使用部件集合器以避免开销过大。
 
 ### View 查找
 
@@ -749,4 +751,4 @@ app.get('/add-to-cart', function(req, res){
 
 ----------------------------------------------------------
 
-最后，感谢一下自己，又长进了。如果读到最近，感觉它对你有帮助，请同时分享给你有需要的朋友吧。
+最后，感谢一下自己，又长进了。读到这里的你，如果感觉它对你有帮助，请同时分享给你有需要的朋友吧～
