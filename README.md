@@ -539,19 +539,22 @@ app.use(express.errorHandler({ showStack: true, dumpExceptions: true }));
 
 `errorHandler` 中间件还可以在 `Accept: application/json` 存在的时候返回 json，这对于开发重度依赖客户端 Javascript 的应用非常有用。
 
-### Route Param Pre-conditions
+### Route 参数预处理
 
-Route param pre-conditions can drastically improve the readability of your application, through implicit loading of data, and validation of request urls. For example if you are constantly fetching common data for several routes, such as loading a user for _/user/:id_, we might typically do something like below:
+路由参数预处理，通过隐式数据加载和请求验证，可以大大提升你程序的可读性。譬如你要持续地从多个路由获取基本数据，比如通过 `/user/:id` 加载一个用户，通常来说我们可能像这样来做：
 
+```js
 app.get('/user/:userId', function(req, res, next){
   User.get(req.params.userId, function(err, user){
     if (err) return next(err);
     res.send('user ' + user.name);
   });
 }); 
+```
 
-With preconditions our params can be mapped to callbacks which may perform validation, coercion, or even loading data from a database. Below we invoke _app.param()_ with the parameter name we wish to map to some middleware, as you can see we receive the _id_ argument which contains the placeholder value. Using this we load the user and perform error handling as usual, and simple call _next()_ to pass control to the next precondition or route handler.
+通过预处理，我们的参数可以映射到执行验证、控制(coercion)，甚至从数据库加载数据。如下我们带着参数名调用 `app.param()` 希望将其映射于某些中间件。如你所见，我们接受代表占位符值的 `id` 参数。我们使用这个，我们如常加载用户并处理错误，并简单地调用 `next()` 把控制权交由下一个预处理或者路由处理器。
 
+```js
 app.param('userId', function(req, res, next, id){
   User.get(id, function(err, user){
     if (err) return next(err);
@@ -560,108 +563,135 @@ app.param('userId', function(req, res, next, id){
     next();
   });
 });
+```
 
-Doing so, as mentioned drastically improves our route readability, and allows us to easily share this logic throughout our application:
+一旦这样做，如上所述将会大大地提升路由的可读性，并且允许我们轻松地在整个程序中共享逻辑：
 
+```js
 app.get('/user/:userId', function(req, res){
   res.send('user ' + req.user.name);
 });
+```
 
-### View Rendering
+### View 处理
 
-View filenames take the form "&lt;name&gt;.&lt;engine&gt;", where &lt;engine&gt; is the name
-of the module that will be required. For example the view _layout.ejs_ will
-tell the view system to _require('ejs')_, the module being loaded must export the method _exports.compile(str, options)_, and return a _Function_ to comply with Express. To alter this behaviour
-_app.register()_ can be used to map engines to file extensions, so that for example "foo.html" can be rendered by ejs.
+View 文件件使用 "&lt;name&gt;.&lt;engine&gt;" 这样的格式，其中 &lt;engine&gt; 是被 `require` 进来模块的名。例如 `layout.ejs` 将告诉 view 系统去 `require('ejs')`，被加载的模块必须导出 `exports.compile(str, options)` 方法，并返回一个 Function 来适合 Express。`app.register()` 可用以改变这种默认行为，将文件扩展名映射到特定的引擎。譬如 “foo.html” 可以由 ejs 来处理。
 
-Below is an example using [Jade](http://github.com/visionmedia/jade) to render _index.html_,
-and since we do not use _layout: false_ the rendered contents of _index.jade_ will be passed as 
-the _body_ local variable in _layout.jade_.
+下面这个例子使用 [Jade](http://github.com/visionmedia/jade) 来处理 index.html。因为我们并未使用 `layout: false`，index.jade 处理后的内容将会被传入到 layout.jade 中一个名为 body 的本地变量。
 
+```js
 app.get('/', function(req, res){
 	res.render('index.jade', { title: 'My Site' });
 });
+```
 
-The new _view engine_ setting allows us to specify our default template engine,
-so for example when using jade we could set:
+新的 `view engine` 设置允许我们指定默认的模板引擎，例如当我们使用 jade 时可以这样设置：
 
+```js
 app.set('view engine', 'jade');
+```
 
-Allowing us to render with:
+允许我们这样处理：
 
+```
 res.render('index');
+```
 
-vs:
+对应于：
 
+```js
 res.render('index.jade');
+```
 
-When _view engine_ is set, extensions are entirely optional, however we can still
-mix and match template engines:
+当 `view engine` 被设定，扩展名实属可选，但我们依然可以混着匹配模板引擎：
 
+```js
 res.render('another-page.ejs');
+```
 
-To apply application-level locals, or view engine options may be set using _app.local()_ or _app.locals()_, for example if we don't want layouts for most of our templates we may do:
+Express 同时还提供了 `view options` 设置，这将应用于一个 view 每次被渲染的时候，譬如你不希望使用 layouts  的时候可能会这样做：
 
-app.local('layout', false);
+```js
+app.set('view options', {
+	layout: false
+});
+```
 
-Which can then be overridden within the _res.render()_ call if desired, and is otherwise functionally equivalent to passing directly to `res.render()`:
+在需要的时候，这可以在 `res.render()` 调用的内部重载：
 
+```js
 res.render('myview.ejs', { layout: true });
+```
 
-When an alternate layout is required, we may also specify a path. For example if we have _view engine_ set to _jade_ and a file named _./views/mylayout.jade_ we can simply pass:
+当有需要变更一个 layout，我们通常需要再指定一个路径。譬如当我们已经把 `view engine` 设置为 jade，并且这个文件命名为 ./views/mylayout.jade，我们可以这样简单地进行传参：
 
+```js
 res.render('page', { layout: 'mylayout' });
+```
 
-Otherwise we must specify the extension:
+否则（译注：没有把 `view engine` 设置为 jade 或者其他的引擎时），我们必须指定一个扩展名：
 
+```js
 res.render('page', { layout: 'mylayout.jade' });
+```
 
-These paths may also be absolute:
+它们同样可以是绝对路径：
 
+```js
 res.render('page', { layout: __dirname + '/../../mylayout.jade' });
+```
 
-### View Partials
+对于这点有一个不错的例子 —— 自定义 ejs 的起始和闭合标签：
 
-The Express view system has built-in support for partials and collections, which are "mini" views representing a document fragment. For example rather than iterating
-in a view to display comments, we could use partial collection:
+```js
+app.set('view options', {
+	open: '{{',
+	close: '}}'
+})
+```
 
+### View 部件
+
+Express 的 view 系统内置了部件（partials） 和集合器（collections）的支持，相当于用一个 “迷你” 的 view 替换一个文档碎片（document fragment）。示例，在一个 view 中反复迭代来显示评论，我们可以使用部件集：
+
+```js
 partial('comment', { collection: comments });
+```
 
-If no other options or local variables are desired, we can omit the object and simply pass our array, which is equivalent to above:
+如果并不需要其他选项或者本地变量，我们可以省略整个对象，简单地传进一个数组，这与上述是等价的：
 
+```js
 partial('comment', comments);
+```
 
-When using the partial collection support a few "magic" locals are provided
-for free:
+在使用中，部件集无偿地提供了一些 “神奇” 本地变量的支持：
 
-* _firstInCollection_  true if this is the first object
-* _indexInCollection_  index of the object in the collection
-* _lastInCollection_  true if this is the last object
-* _collectionLength_  length of the collection
+* _firstInCollection_  true，当它是第一个对象的时候
+* _indexInCollection_  在集合器对象中的索引
+* _lastInCollection_  true，当它是最后一个对象的时候
+* _collectionLength_  集合器对象的长度
 
-Local variables passed (or generated) take precedence, however locals passed to the parent view are available in the child view as well. So for example if we were to render a blog post with _partial('blog/post', post)_ it would generate the _post_ local, but the view calling this function had the local _user_, it would be available to the _blog/post_ view as well.
+本地变量的传递（生成）具备更高的优先级，同时，传到父级 view 的本地变量对于子级 view 同样适应。例如当我们用 `partial('blog/post', post)` 来渲染一个博客文章，它将会生成 一个 `post` 本地变量，在调用这个函数的 view 中存在本地变量 `user`，它将同样对 `blog/post` 有效。（译注：这里 partial 比较像 php 中的 include 方法）。
 
-For documentation on altering the object name view [res.partial()](http://expressjs.com/guide.html#res-partial-view-options-).
+__注意:__ 请谨慎使用部件集合器，渲染一个长度为 100 的数组相当于我们需要处理 100 个 view。对于简单的集合，最好重复内置，而非使用部件集合器以避免开销。
 
-__NOTE:__ be careful about when you use partial collections, as rendering an array with a length of 100 means we have to render 100 views. For simple collections you may inline the iteration instead of using partial collection support to decrease overhead.
+### View 查找
 
-### View Lookup
+View 查找相对于父级 view （路径）执行，如我们有一个 view 页面叫作 views/user/list.jade，并且在其内部写有 `partial('edit')` 则它会尝试加载 views/user/edit.jade，同理 `partial('../messages')` 将会加载 views/messages.jade。
 
-View lookup is performed relative to the parent view, for example if we had a page view named _views/user/list.jade_, and within that view we did _partial('edit')_ it would attempt to load _views/user/edit.jade_, whereas _partial('../messages')_ would load _views/messages.jade_.
+View 系统还支持模板索引，允许你使用一个与 view 同名的目录。例如在一个路由中，`res.render('users')` 得到的非 views/users.jade 即 views/users/index.jade。（译注：先处理 `&lt;path&gt;.&lt;engine&gt;` 的情况，再处理 `&lt;path&gt;/&lt;index.&lt;engine&gt;` 的情况，详情可见 [view.js](https://github.com/visionmedia/express/blob/master/lib/view.js)。）
 
-The view system also allows for index templates, allowing you to have a directory of the same name. For example within a route we may have _res.render('users')_ either _views/users.jade_, or _views/users/index.jade_.
-
-When utilizing index views as shown above, we may reference _views/users/index.jade_ from a view in the same directory by _partial('users')_, and the view system will try _../users/index_, preventing us from needing to call _partial('index')_.
+当使用上述 view 索引，我们在与 view 同一个目录下，使用 `partial('users')` 中引用 views/users/index.jade，与此同时 view 系统会尝试索引 `../users/index`，而无须我们调用 `partial('users')`。
 
 ### Template Engines
 
-Below are a few template engines commonly used with Express:
+下列为 Express 最常用的模板引擎:
 
-* [Haml](http://github.com/visionmedia/haml.js) haml implementation
-* [Jade](http://jade-lang.com) haml.js successor
-* [EJS](http://github.com/visionmedia/ejs) Embedded JavaScript
-* [CoffeeKup](http://github.com/mauricemach/coffeekup) CoffeeScript based templating
-* [jQuery Templates](https://github.com/kof/node-jqtpl) for node
+* [Haml](http://github.com/visionmedia/haml.js) haml 实现
+* [Jade](http://jade-lang.com) haml.js 继位者
+* [EJS](http://github.com/visionmedia/ejs) 嵌入式 JavaScript
+* [CoffeeKup](http://github.com/mauricemach/coffeekup) 基于 CoffeeScript 的模板
+* [jQuery Templates](https://github.com/kof/node-jqtpl) 
 
 ### Session Support
 
