@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>ExpressJS中文指南</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div id="main">
+            <h3>安装</h3>
+        
+            <p><pre class="code"><code>$ npm install express
+</code></pre></p>
+        
+            <p>或者在任何地方使用可执行的 express(1) 安装：</p>
+         <p><pre class="code"><code>\# 译注：强烈建议这种方式
+$ npm install -g express
+</code></pre></p>
+        
+            <h3>快速上手</h3>
+
+            <p>最快上手 express 的方法是利用可执行的 express(1) 来生成一个应用，如下所示：</p>
+            <br>
+            <p><strong>创建一个app：</strong></p>
+
+            <p><pre class="code"><code>$ npm install -g express
+$ express /tmp/foo && cd /tmp/foo</code></pre></p>
+
+            <p><strong>安装依赖包：</strong></p>
+
+            <p><pre class="code"><code>$ npm install -d</code></pre></p>
+
+            <p><strong>启动服务器：</strong></p>
+
+            <p><pre class="code"><code>$ node app.js</code></pre></p>
+
+            <h3>创建一个服务器</h3>
+
+            <p>要创建一个 express.HTTPServer 实例，只需调用<span class="codeBlock">createServer()</span>方法。 通用这个应用实例，我们可以定义基于 HTTP 动作（HTTP Verbs）的路由，以<span class="codeBlock">app.get()</span>为例：</p>
+
+            <p><pre class="code"><code>var app = require('express').createServer();
+
+app.get('/', function(req, res){
+  res.send('hello world');
+});
+
+app.listen(3000);</code></pre></p>
+
+            <h3>创建一个 HTTPS 服务器</h3>
+
+            <p>如上述初始化一个<span class="codeBlock">express.HTTPSServer</span>实例。然后我们给它传一个配置对象，接受 key、cert 和其他在 https 文档 所提到的（属性/方法）。</p>
+
+            <p><pre class="code"><code>var app = require('express').createServer({ key: ... });</code></pre></p>
+
+            <h3>配置</h3>
+
+            <p>Express 支持任意环境，如产品阶段（production）和开发阶段（development）。开发者可以使用 <span class="codeBlock">configure()</span>方法来设置当前所需环境。如果 configure() 的调用不包含任何环境名，它将运行于所有环境中所指定的回调。</p>
+
+            <br>
+
+            <p class="mark">译注： 像 production / development / stage 这些别名都是可以自已取的，如 application.js 中的<span class="codeBlock">app.configure</span>所示。实际用法看下面例子。</p>
+
+            <br>
+
+            <p>下面这个例子仅在开发阶段<span class="codeBlock">dumpExceptions</span>(抛错)，并返回堆栈异常。不过在两个环境中我们都使用<span class="codeBlock">methodOverride</span>和<span class="codeBlock">bodyParser</span>。注意一下<span class="codeBlock">app.router</span>的使用，它可以（可选）用来加载（mount）程序的路由，另外首次调用<span class="codeBlock">app.get()</span>、<span class="codeBlock">app.post()</span>等也将会加载路由。</p>
+
+            <p><pre class="code"><code>app.configure(function(){
+    app.use(express.methodOverride());
+    app.use(express.bodyParser());
+    app.use(app.router);
+});
+
+app.configure('development', function(){
+    app.use(express.static(__dirname + '/public'));
+    app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+});
+
+app.configure('production', function(){
+  var oneYear = 31557600000;
+  app.use(express.static(__dirname + '/public', { maxAge: oneYear }));
+  app.use(express.errorHandler());
+});</code></pre></p>
+
+        <p>对于相似的环境你可以传递多个环境字符串：</p>
+
+        <p><pre class="code"><code>app.configure('stage', 'prod', function(){
+  // config
+});</code></pre></p>
+
+        <p>对于任何内部设置（#)，Express 提供了<span class="codeBlock">set(key[, val])</span>、<span class="codeBlock">enable(key)</span>和 <span class="codeBlock">disable(key) </span>方法:
+
+译注：设置详见：<span class="codeBlock">application.js</span>的 <span class="codeBlock">app.set()</span>。</p>
+
+        <p><pre class="code"><code>app.configure(function(){
+    app.set('views', __dirname + '/views');
+    app.set('views');
+    // => "/absolute/path/to/views"
+
+    app.enable('some feature');
+    // 等价于：app.set('some feature', true);
+
+    app.disable('some feature');
+    // 等价于：app.set('some feature', false);
+
+    app.enabled('some feature')
+    // => false
+ });</code></pre></p>
+
+        <p>变更环境我们可以设置 <span class="codeBlock">NODE_ENV</span> 环境变量，如：</p>
+
+        <p><pre class="code"><code>$ NODE_ENV=production node app.js</code></pre></p>
+
+        <p>这非常重要，因为多数缓存机制只在产品阶段是被打开的。</p>
+
+        <h3>设置</h3>
+
+        <p>Express 支持下列快捷（out of the box）设置：</p>
+
+        </div>
+    </body>
+</html>

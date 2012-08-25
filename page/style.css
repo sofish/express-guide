@@ -1,0 +1,44 @@
+body{
+	font: 400 12px/1.5 "Open Sans", sans-serif;
+	color: #777;
+}
+
+h1,h2,h3{
+	color: #353535;
+}
+
+p{
+	width: 60%;
+  	margin: 5px 0;
+}
+}
+
+.mark{
+	color: #D14;
+	font-size: 8px;
+}
+
+.code{
+	border: 1px solid #E7E7E7;
+	border-bottom: 1px solid #DDD;
+	padding: 20px;
+	line-height: 1.4;
+	color: #353535;
+	font-size: .8em;
+	font-family: monaco, monospace;
+	-webkit-border-radius: 3px;
+}
+
+.codeBlock{
+	border: 1px solid #EAEAEA;
+	color: #353535;
+	padding: 2px 8px;
+	font-size: .75em;
+	background: #EFEFEF;
+	-webkit-border-radius: 3px;
+}
+
+#main{
+	width: 900px;
+	margin-left: 80px;
+}
