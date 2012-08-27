@@ -1,16 +1,55 @@
 body{
 	font: 400 12px/1.5 "Open Sans", sans-serif;
 	color: #777;
+	line-height: 25px;
+}
+
+header{
+	width: 100%;
+	background: rgba(255, 255, 255, .9);
+	height: 55px;
+	top: 0;
 }
 
 h1,h2,h3{
 	color: #353535;
 }
 
+h3{
+	padding-top: 100px;
+}
+
 p{
 	width: 60%;
   	margin: 5px 0;
 }
+
+a{
+	color: #259DFF;
+	text-decoration: none;
+}
+
+a:hover{
+	text-decoration: underline;
+}
+
+#index ul{
+	list-style: none;
+	padding: 0px;
+}
+
+#index ul li{
+	font-size: 12px;
+	font: 400 12px/1.5 "Open Sans", sans-serif;
+	color: #777;
+	margin-top: 8px;
+}
+
+#index a{
+	font: 400 12px/1.5 "Open Sans", sans-serif;
+	color: #777;
+	text-decoration: none;
+
 }
 
 .mark{
@@ -21,9 +60,8 @@ p{
 .code{
 	border: 1px solid #E7E7E7;
 	border-bottom: 1px solid #DDD;
-	padding: 20px;
+	padding: 10px;
 	line-height: 1.4;
-	color: #353535;
 	font-size: .8em;
 	font-family: monaco, monospace;
 	-webkit-border-radius: 3px;
@@ -38,7 +76,40 @@ p{
 	-webkit-border-radius: 3px;
 }
 
+.copyright{
+	font-size: 12px;
+}
+
+#navi{
+	position: fixed;
+	margin: 0;
+	font: 400 25px "Helvetica Neue", Helvetica, Arial, sans-serif;
+	border-bottom: 1px solid #DDD;
+	display: block;
+}
+
+#logo{
+	color: #353535;
+	padding: 10px 10px;
+	width: auto;
+	display: block;
+}
+
+
+#layout{
+	width: 100%;
+	margin-top: 100px;
+}
+
 #main{
+	float: left;
 	width: 900px;
-	margin-left: 80px;
+	margin-left: 100px;
+}
+
+#index{
+	float: left;
+	margin-left: 50px;
+	position: fixed;
+	right: 30px;
 }
