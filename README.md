@@ -1,6 +1,6 @@
-# Express 指南
+> 在页面上阅读：[http://sofish.github.com/express-guide/]()
 
-在页面上阅读：[http://sofish.github.com/express-guide/]()
+# Express 指南
 
 这是对 [express.js guide](http://expressjs.com/guide.html) 的一个翻译。翻译人：[Sofish Lin](http://sofish.de)（[twitter](http://twitter.com/sofish)）。
 
