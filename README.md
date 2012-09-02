@@ -1,5 +1,7 @@
 # Express 指南
 
+在页面上阅读：[http://sofish.github.com/express-guide/]()
+
 这是对 [express.js guide](http://expressjs.com/guide.html) 的一个翻译。翻译人：[Sofish Lin](http://sofish.de)（[twitter](http://twitter.com/sofish)）。
 
 翻译此文档的目的是学习 Express，因为翻译意味着一种责任，因此边看 Express 源代码边翻。在容易混淆的地方都加上了译注。给自己做一个记录保存下来，也给有需要的人一份参考。当然，由于个人水平的原因，并不能最恰当地传达作者的幽默，也少不了错误，还请各位有看到的同学多多指正。
