@@ -1,4 +1,4 @@
-> 在页面上阅读：[http://sofish.github.com/express-guide/]()
+> 在页面上阅读：[http://sofish.github.com/express-guide/](http://sofish.github.com/express-guide/)
 
 # Express 指南
 
